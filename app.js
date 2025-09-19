@@ -48,7 +48,7 @@ const store = MongoStore.create({
     touchAfter :24*3600,
 });
 
-store.on("error",()=>{
+store.on("error",(err)=>{
     console.log("Error in MONGO SESSION STORE",err);
 });
 
@@ -64,9 +64,9 @@ const sessionOptions = {
     }
 };
 
-// app.get("/",(req,res)=>{
-//     res.send("Hi i'm root");
-// });
+app.get("/",(req,res)=>{
+    res.redirect("/listings");
+});
 
 app.use(session(sessionOptions));
 app.use(flash());
@@ -100,6 +100,7 @@ app.use((err,req,res,next)=>{ //middleware error handling -not working rn
     // res.status(statusCode).send(message);
 });
 
-app.listen(8080,()=>{
-    console.log("app is listening to port 8080");
+const port = process.env.PORT || 8080;
+app.listen(port,()=>{
+    console.log(`app is listening to port ${port}`);
 });
