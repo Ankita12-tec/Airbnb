@@ -15,6 +15,7 @@ const flash = require("connect-flash");
 const passport = require("passport");
 const LocalStatergy = require("passport-local");
 const User = require("./models/user.js");
+const securityHeaders = require("./utils/security.js");
 
 const listingRouter = require("./routes/listing.js");
 const reviewsRouter = require("./routes/review.js");
@@ -60,13 +61,29 @@ const sessionOptions = {
     cookie :{
         expires : Date.now() + 7 * 24 * 60 * 60 * 1000,
         maxAge : 7 * 24 * 60 * 60 * 1000,
-        httpOnly : true 
+        httpOnly : true,
+        secure: process.env.NODE_ENV === "production", // Use secure cookies in production
+        sameSite: 'lax'
     }
 };
 
 app.get("/",(req,res)=>{
     res.redirect("/listings");
 });
+
+// HTTPS redirect middleware for production
+if (process.env.NODE_ENV === "production") {
+    app.use((req, res, next) => {
+        if (req.header('x-forwarded-proto') !== 'https') {
+            res.redirect(`https://${req.header('host')}${req.url}`);
+        } else {
+            next();
+        }
+    });
+}
+
+// Apply security headers
+securityHeaders(app);
 
 app.use(session(sessionOptions));
 app.use(flash());
@@ -89,15 +106,15 @@ app.use("/listings",listingRouter);
 app.use("/listings/:id/reviews",reviewsRouter);
 app.use("/",userRouter);
 
-//NOT WORKING IDK WHY
-// app.all("*",(req,res,next)=>{
-//    next(new ExpressError(404,"Page not found"));
-// });
+// 404 Error Handler
+app.all("*",(req,res,next)=>{
+    next(new ExpressError(404,"Page not found"));
+});
 
-app.use((err,req,res,next)=>{ //middleware error handling -not working rn
-    let{statusCode=500 ,message="smthg went wrong"} = err;
+// Error handling middleware
+app.use((err,req,res,next)=>{
+    let{statusCode=500 ,message="Something went wrong"} = err;
     res.status(statusCode).render("error.ejs",{message});
-    // res.status(statusCode).send(message);
 });
 
 const port = process.env.PORT || 8080;

@@ -6,6 +6,7 @@ const {isLoggedIn,isOwner,validateListing} = require("../middleware.js");
 const listingController = require("../controllers/listings.js");
 const multer  = require('multer');
 const {storage} = require("../cloudConfig.js");
+const parseNestedBodyFields = require("../utils/parseNestedBodyFields.js");
 const upload = multer({ storage });
 
 router
@@ -14,8 +15,11 @@ router
     .post(isLoggedIn,
                //Create Route
         upload.single('listing[image]'),
+        parseNestedBodyFields,
+        validateListing,
         wrapAsync( listingController.createListing)
     );
+
 
 //New Route
 router.get("/new", isLoggedIn,listingController.renderNewForm);
@@ -23,7 +27,7 @@ router.get("/new", isLoggedIn,listingController.renderNewForm);
 router
     .route("/:id")
     .get(wrapAsync(listingController.showListing))
-    .put(isLoggedIn,isOwner,validateListing, upload.single('listing[image]'),wrapAsync(listingController.updateListing))
+    .put(isLoggedIn,isOwner,upload.single('listing[image]'),parseNestedBodyFields,validateListing,wrapAsync(listingController.updateListing))
     .delete(isLoggedIn,isOwner,wrapAsync(listingController.destroyListing)
     );
 

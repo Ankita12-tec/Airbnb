@@ -1,0 +1,24 @@
+services:
+  - type: web
+    name: wanderlust-app
+    env: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: ATLASDB_URL
+        fromSecret: mongodb-atlas-url
+      - key: SECRET
+        fromSecret: session-secret
+      - key: CLOUD_NAME
+        fromSecret: cloudinary-cloud-name
+      - key: CLOUD_API_KEY
+        fromSecret: cloudinary-api-key
+      - key: CLOUD_API_SECRET
+        fromSecret: cloudinary-api-secret
+      - key: MAPBOX_TOKEN
+        fromSecret: mapbox-token
