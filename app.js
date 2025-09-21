@@ -4,6 +4,9 @@ if(process.env.NODE_ENV != "production"){
 
 const express = require("express");
 const app= express();
+
+// Trust proxy for correct protocol detection behind Render's proxy
+app.set('trust proxy', 1);
 const mongoose = require("mongoose");
 const path = require("path");
 const methodOverride = require("method-override");
@@ -75,10 +78,9 @@ app.get("/",(req,res)=>{
 if (process.env.NODE_ENV === "production") {
     app.use((req, res, next) => {
         if (req.header('x-forwarded-proto') !== 'https') {
-            res.redirect(`https://${req.header('host')}${req.url}`);
-        } else {
-            next();
+            return res.redirect(`https://${req.header('host')}${req.url}`);
         }
+        next();
     });
 }
 
